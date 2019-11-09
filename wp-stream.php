@@ -5,7 +5,7 @@ Plugin URI: http://bradyriordan.com/wp-social-stream
 Description: Aggregate social posts in one view
 Author: Brady Riordan
 Author URI: http://bradyriordan.com
-Version: 1.0.0
+Version: 1.0.1
 */
 
 // create admin screen for youtube, github, and twitter credentials

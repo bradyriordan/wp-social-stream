@@ -17,102 +17,194 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-
 if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
 
-    class WP_Social_Stream_Admin {  
-        
-        function __construct( ) {
-            add_action('admin_menu', array($this,'wpst_admin_page') );
-            add_action('admin_init', array($this,'wpst_register_settings') );
-        }
-            
-        // Add menu and page
-        public function wpst_admin_page(){
-            add_menu_page( 'WP Social Stream', 'WP Social Stream', 'manage_options', 'wp-social-stream', array($this, 'wpst_admin_page_content') );
+    class WP_Social_Stream_Admin{
+        /**
+         * Holds the values to be used in the fields callbacks
+         */
+        private $options;
+
+        // Initialize
+        public function __construct()
+        {
+            add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
+            add_action( 'admin_init', array( $this, 'page_init' ) );
         }
 
-        // Form
-        public function wpst_admin_page_content(){
+        // Admin page
+        public function add_plugin_page()
+        {
+            // Will appear as it's own menu option
+            add_menu_page(
+                'Settings Admin', 
+                'WP Social Stream', 
+                'manage_options', 
+                'wp-social-stream', 
+                array( $this, 'create_admin_page' )
+            );
+        }
+
+        // Render form
+        public function create_admin_page()
+        {
+            // Set class property
+            $this->options = get_option( 'wp_social_stream_options' );
             ?>
-
             <div class="wrap">
-
-            <h1>WP Social Stream</h1>
-
-            <form method="post" action="options.php">
-
-                <?php settings_fields( 'wpst_options' ); ?>
-
-                <?php do_settings_sections( 'wp-social-stream' ); ?>
-                
-                <?php submit_button(); ?>
-
-            </form>
-            
+                <h1>WP Social Stream</h1>
+                <form method="post" action="options.php">
+                <?php
+                    // This prints out all hidden setting fields
+                    settings_fields( 'wp_social_stream_option_group' );
+                    do_settings_sections( 'wp-social-stream-setting-admin' );
+                    submit_button();
+                ?>
+                </form>
             </div>
+            <?php
+        }
 
-        <?php }
-        
-        // Register sections and settings
-        public function wpst_register_settings(){
-
+        // Register settings and sections
+        public function page_init()
+        {        
             register_setting(
-                'wpst_options',
-                'wpst_options',
-                'wpst_validate_options'
+                'wp_social_stream_option_group', // Option group
+                'wp_social_stream_options', // Option name
+                array( $this, 'sanitize' ) // Sanitize
             );
 
-
-            // Sections
+            // Twitter section
             add_settings_section(
-                'wpst_api_credentials',
-                'API Credentials',
-                array($this, 'wpst_callback_section'),
-                'wp-social-stream'
-            );	
+                'twitter_section_id', // ID
+                'Twitter', // Title
+                array( $this, 'print_twitter_section_info' ), // Callback
+                'wp-social-stream-setting-admin' // Page
+            ); 
 
-            // Settings fields
+            // Twitter fields
             add_settings_field(
-                'wpst_twitter',
-                'Twitter',
-                array($this, 'wpst_callback_field_text'),
-                'wp-social-stream',
-                'wpst_api_credentials',
-                ['id' => 'wpst_twitter', 'label' => 'Twitter']
+                'twitter_handle', // ID
+                'Twitter Handle', // Title 
+                array( $this, 'twitter_handle_callback' ), // Callback
+                'wp-social-stream-setting-admin', // Page
+                'twitter_section_id' // Section           
+            ); 
+
+            add_settings_field(
+                'twitter_consumer_key', // ID
+                'Consumer Key', // Title 
+                array( $this, 'twitter_consumer_key_callback' ), // Callback
+                'wp-social-stream-setting-admin', // Page
+                'twitter_section_id' // Section           
+            ); 
+
+            add_settings_field(
+                'twitter_consumer_secret', // ID
+                'Consumer Secret', // Title 
+                array( $this, 'twitter_consumer_secret_callback' ), // Callback
+                'wp-social-stream-setting-admin', // Page
+                'twitter_section_id' // Section           
+            ); 
+
+            add_settings_field(
+                'twitter_access_token', // ID
+                'Access Token', // Title 
+                array( $this, 'twitter_access_token_callback' ), // Callback
+                'wp-social-stream-setting-admin', // Page
+                'twitter_section_id' // Section           
+            ); 
+
+            add_settings_field(
+                'twitter_access_token_secret', // ID
+                'Access Token Secret', // Title 
+                array( $this, 'twitter_access_token_secret_callback' ), // Callback
+                'wp-social-stream-setting-admin', // Page
+                'twitter_section_id' // Section           
+            ); 
+
+        }
+
+        /**
+         * Sanitize each setting field as needed
+         *
+         * @param array $input Contains all settings fields as array keys
+         */
+        public function sanitize( $input )
+        {
+            $new_input = array();
+            if( isset( $input['twitter_handle'] ) )
+                $new_input['twitter_handle'] = sanitize_text_field( $input['twitter_handle'] );
+            
+            if( isset( $input['twitter_consumer_key'] ) )
+                $new_input['twitter_consumer_key'] = sanitize_text_field( $input['twitter_consumer_key'] );
+
+            if( isset( $input['twitter_consumer_secret'] ) )
+                $new_input['twitter_consumer_secret'] = sanitize_text_field( $input['twitter_consumer_secret'] );
+
+            if( isset( $input['twitter_access_token'] ) )
+                $new_input['twitter_access_token'] = sanitize_text_field( $input['twitter_access_token'] );
+
+            if( isset( $input['twitter_access_token_secret'] ) )
+                $new_input['twitter_access_token_secret'] = sanitize_text_field( $input['twitter_access_token_secret'] );
+
+            return $new_input;
+        }
+
+        /** 
+         * Print the Section text
+         */
+        public function print_twitter_section_info()
+        {
+            print 'Enter your Twitter credentials below:';
+        }
+
+        /** 
+         * Get the settings option array and print one of its values
+         */
+        public function twitter_handle_callback()
+        {
+            printf(
+                '<input type="text" id="twitter_handle" name="wp_social_stream_options[twitter_handle]" value="%s" />',
+                isset( $this->options['twitter_handle'] ) ? esc_attr( $this->options['twitter_handle']) : ''
             );
-	
         }
 
-        // Section callback
-        public function wpst_callback_section(){
-            echo '<p>Enter your API credentials below</p>';
+        public function twitter_consumer_key_callback()
+        {
+            printf(
+                '<input type="text" id="twitter_consumer_key" name="wp_social_stream_options[twitter_consumer_key]" value="%s" />',
+                isset( $this->options['twitter_consumer_key'] ) ? esc_attr( $this->options['twitter_consumer_key']) : ''
+            );
         }
 
-        // Text field callback
-        public function wpst_callback_field_text($args){
-            $options = get_option('wpst_options');
-
-            $id    = isset($args['id'])    ? $args['id']    : '';
-            $label = isset($args['label']) ? $args['label'] : '';
-
-            $value = isset($options[$id]) ? sanitize_text_field($options[$id]) : '';
-
-            echo '<input id="' . $id . '" name="' . $id . '" type="text" size="40" value="' . $value . '"><br />';
-            echo '<label for="' . $id . '">' . $label . '</label>';
+        public function twitter_consumer_secret_callback()
+        {
+            printf(
+                '<input type="text" id="twitter_consumer_secret" name="wp_social_stream_options[twitter_consumer_secret]" value="%s" />',
+                isset( $this->options['twitter_consumer_secret'] ) ? esc_attr( $this->options['twitter_consumer_secret']) : ''
+            );
         }
 
-        // Validate input
-        public function wpst_validate_options($input) {   
+        public function twitter_access_token_callback()
+        {
+            printf(
+                '<input type="text" id="twitter_access_token" name="wp_social_stream_options[twitter_access_token]" value="%s" />',
+                isset( $this->options['twitter_access_token'] ) ? esc_attr( $this->options['twitter_access_token']) : ''
+            );
+        }
+
+        public function twitter_access_token_secret_callback()
+        {
+            printf(
+                '<input type="text" id="twitter_access_token_secret" name="wp_social_stream_options[twitter_access_token_secret]" value="%s" />',
+                isset( $this->options['twitter_access_token_secret'] ) ? esc_attr( $this->options['twitter_access_token_secret']) : ''
+            );
+        }
+
         
-            // Twitter     
-            if (isset($input['wpst_twitter'])) {  
-                $input['wpst_twitter'] = sanitize_text_field($input['wpst_twitter']);
-            }
-            return $input;
-        }
-
     }
 
 }
+
 new WP_Social_Stream_Admin();
