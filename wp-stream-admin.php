@@ -53,6 +53,7 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
             ?>
             <div class="wrap">
                 <h1>WP Social Stream</h1>
+                
                 <form method="post" action="options.php">
                 <?php
                     // This prints out all hidden setting fields
@@ -74,53 +75,106 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
                 array( $this, 'sanitize' ) // Sanitize
             );
 
+             /************************************ 
+                
+                Sync Section
+                
+            ************************************/
+            // Sync section
+            add_settings_section(
+                'sync_section_id', // ID
+                'Sync Settings', // Title
+                array( $this, 'sync_section_info' ), // Callback
+                'wp-social-stream-setting-admin' // Page
+            );             
+
+            add_settings_field(
+                'sync_setting', // ID
+                'Sync', // Title 
+                array( $this, 'select_callback' ),
+                'wp-social-stream-setting-admin', // Page
+                'sync_section_id', // Section
+                ['id' => 'sync_setting']           
+            ); 
+            
+            /************************************ 
+                
+                Twitter Section
+                
+            ************************************/
             // Twitter section
             add_settings_section(
                 'twitter_section_id', // ID
                 'Twitter', // Title
                 array( $this, 'print_twitter_section_info' ), // Callback
                 'wp-social-stream-setting-admin' // Page
-            ); 
+            );             
 
-            // Twitter fields
             add_settings_field(
                 'twitter_handle', // ID
                 'Twitter Handle', // Title 
-                array( $this, 'twitter_handle_callback' ), // Callback
+                array( $this, 'text_callback' ), // Callback
                 'wp-social-stream-setting-admin', // Page
-                'twitter_section_id' // Section           
+                'twitter_section_id', // Section 
+                ['id' => 'twitter_handle']          
             ); 
 
             add_settings_field(
                 'twitter_consumer_key', // ID
                 'Consumer Key', // Title 
-                array( $this, 'twitter_consumer_key_callback' ), // Callback
+                array( $this, 'text_callback' ), // Callback
                 'wp-social-stream-setting-admin', // Page
-                'twitter_section_id' // Section           
+                'twitter_section_id', // Section 
+                ['id' => 'twitter_consumer_key']               
             ); 
 
             add_settings_field(
                 'twitter_consumer_secret', // ID
                 'Consumer Secret', // Title 
-                array( $this, 'twitter_consumer_secret_callback' ), // Callback
+                array( $this, 'text_callback' ), // Callback
                 'wp-social-stream-setting-admin', // Page
-                'twitter_section_id' // Section           
+                'twitter_section_id', // Section
+                ['id' => 'twitter_consumer_secret']            
             ); 
 
             add_settings_field(
                 'twitter_access_token', // ID
                 'Access Token', // Title 
-                array( $this, 'twitter_access_token_callback' ), // Callback
+                array( $this, 'text_callback' ), // Callback
                 'wp-social-stream-setting-admin', // Page
-                'twitter_section_id' // Section           
+                'twitter_section_id', // Section
+                ['id' => 'twitter_access_token']              
             ); 
 
             add_settings_field(
                 'twitter_access_token_secret', // ID
                 'Access Token Secret', // Title 
-                array( $this, 'twitter_access_token_secret_callback' ), // Callback
+                array( $this, 'text_callback' ), // Callback
                 'wp-social-stream-setting-admin', // Page
-                'twitter_section_id' // Section           
+                'twitter_section_id', // Section
+                ['id' => 'twitter_access_token_secret']            
+            );
+            
+             /************************************ 
+                
+                GitHub Section
+                
+            ************************************/
+            // GitHub section
+            add_settings_section(
+                'github_section_id', // ID
+                'GitHub', // Title
+                array( $this, 'print_github_section_info' ), // Callback
+                'wp-social-stream-setting-admin' // Page
+            );             
+
+            add_settings_field(
+                'github_token', // ID
+                'GitHub Token', // Title 
+                array( $this, 'text_callback' ), // Callback
+                'wp-social-stream-setting-admin', // Page
+                'github_section_id', // Section  
+                ['id' => 'github_token']          
             ); 
 
         }
@@ -148,58 +202,67 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
             if( isset( $input['twitter_access_token_secret'] ) )
                 $new_input['twitter_access_token_secret'] = sanitize_text_field( $input['twitter_access_token_secret'] );
 
+            if( isset( $input['github_token'] ) )
+                $new_input['github_token'] = sanitize_text_field( $input['github_token'] );
+            
+            if( isset( $input['sync_setting'] ) )
+                $new_input['sync_setting'] = $input['sync_setting'];
+
             return $new_input;
         }
 
-        /** 
-         * Print the Section text
-         */
+        // Callbacks for sections
         public function print_twitter_section_info()
         {
             print 'Enter your Twitter credentials below:';
         }
 
-        /** 
-         * Get the settings option array and print one of its values
-         */
-        public function twitter_handle_callback()
+        public function print_github_section_info()
         {
-            printf(
-                '<input type="text" id="twitter_handle" name="wp_social_stream_options[twitter_handle]" value="%s" />',
-                isset( $this->options['twitter_handle'] ) ? esc_attr( $this->options['twitter_handle']) : ''
-            );
+            print 'Enter your GitHub credentials below:';
         }
 
-        public function twitter_consumer_key_callback()
+        public function sync_section_info()
         {
-            printf(
-                '<input type="text" id="twitter_consumer_key" name="wp_social_stream_options[twitter_consumer_key]" value="%s" />',
-                isset( $this->options['twitter_consumer_key'] ) ? esc_attr( $this->options['twitter_consumer_key']) : ''
-            );
+            print 'Enter your sync settings below:';
         }
 
-        public function twitter_consumer_secret_callback()
-        {
+        // Callback for text fields
+        public function text_callback($args){
             printf(
-                '<input type="text" id="twitter_consumer_secret" name="wp_social_stream_options[twitter_consumer_secret]" value="%s" />',
-                isset( $this->options['twitter_consumer_secret'] ) ? esc_attr( $this->options['twitter_consumer_secret']) : ''
+                '<input type="text" id="' . $args['id'] . '" name="wp_social_stream_options[' .  $args['id'] . ']" value="%s" />',
+                isset( $this->options[$args['id']] ) ? esc_attr( $this->options[$args['id']]) : ''
             );
-        }
+        }  
+        
 
-        public function twitter_access_token_callback()
-        {
-            printf(
-                '<input type="text" id="twitter_access_token" name="wp_social_stream_options[twitter_access_token]" value="%s" />',
-                isset( $this->options['twitter_access_token'] ) ? esc_attr( $this->options['twitter_access_token']) : ''
+        // Callback for select fields
+        public function select_callback($args){
+            
+            $select_sync_settings = array(
+                '1-hour' => 'Every hour',
+                '6-hours' => 'Every 6 hours',
+                '24-hours' => 'Every 24 hours',
             );
-        }
 
-        public function twitter_access_token_secret_callback()
-        {
-            printf(
-                '<input type="text" id="twitter_access_token_secret" name="wp_social_stream_options[twitter_access_token_secret]" value="%s" />',
-                isset( $this->options['twitter_access_token_secret'] ) ? esc_attr( $this->options['twitter_access_token_secret']) : ''
-            );
+            if($args['id'] == 'sync_setting'){
+                $select_options = $select_sync_settings;
+            } else {
+                // other select
+            }
+
+            $selected_option = isset( $this->options[$args['id']] ) ? esc_attr( $this->options[$args['id']]) : '';
+
+            echo '<select id="' . $args['id'] . '" name="wp_social_stream_options[' . $args['id'] . ']" />';
+                    
+                    foreach($select_options as $value => $option){
+                        
+                        $selected = selected($selected_option === $value, true, false);
+                        echo '<option value="'. $value .'"' . $selected . '>' . $option . '</option>';  
+                    
+                    }
+                
+            echo '</select>'; 
         }
 
         
