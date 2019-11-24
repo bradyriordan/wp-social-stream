@@ -180,7 +180,7 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
         }
 
         /**
-         * Sanitize each setting field as needed
+         * Sanitize each setting field
          *
          * @param array $input Contains all settings fields as array keys
          */
@@ -211,7 +211,11 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
             return $new_input;
         }
 
-        // Callbacks for sections
+        /************************************ 
+                
+                Section Callbacks
+                
+        ************************************/
         public function print_twitter_section_info()
         {
             print 'Enter your Twitter credentials below:';
@@ -224,8 +228,11 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
 
         public function sync_section_info()
         {
-            print 'Enter your sync settings below:';
+            print '<i>Last synced:</i> November 11, 2019 9:39PM <br /><br />';
+            print '<input type="button" type="submit" value="Sync Now" class="button-primary"></input>';
         }
+
+
 
         // Callback for text fields
         public function text_callback($args){
@@ -233,9 +240,8 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
                 '<input type="text" id="' . $args['id'] . '" name="wp_social_stream_options[' .  $args['id'] . ']" value="%s" />',
                 isset( $this->options[$args['id']] ) ? esc_attr( $this->options[$args['id']]) : ''
             );
-        }  
+        }
         
-
         // Callback for select fields
         public function select_callback($args){
             
@@ -244,6 +250,8 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
                 '6-hours' => 'Every 6 hours',
                 '24-hours' => 'Every 24 hours',
             );
+
+            // Add other select options here
 
             if($args['id'] == 'sync_setting'){
                 $select_options = $select_sync_settings;
