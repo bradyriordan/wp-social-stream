@@ -1,18 +1,5 @@
 <?php
-/*
-Plugin Name: WP Social Stream
-Plugin URI: http://bradyriordan.com/wp-social-stream
-Description: Aggregate social posts in one view
-Author: Brady Riordan
-Author URI: http://bradyriordan.com
-Version: 1.0.0
-*/
 
-// create admin screen for youtube, github, and twitter credentials
-// every x hours, fetch content from each social providers and store in db
-// create shortcode that return content from db
-
-// exit if file is called directly
 if (!defined('ABSPATH')) {
 	exit;
 }
@@ -187,6 +174,7 @@ if ( !class_exists( 'WP_Social_Stream_Admin' ) ) {
         public function sanitize( $input )
         {
             $new_input = array();
+            
             if( isset( $input['twitter_handle'] ) )
                 $new_input['twitter_handle'] = sanitize_text_field( $input['twitter_handle'] );
             
